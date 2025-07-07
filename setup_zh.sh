@@ -96,14 +96,6 @@ echo "-----正在生成supervisord配置文件-----"
 nvidia-smi -L
 read -p "请根据打印的GPU信息输入您需要运行的GPU ID（例如 0,1 ，默认 0）: " GPU_IDS
 GPU_IDS=${GPU_IDS:-0}
-declare -A NETWORK_NAMES
-NETWORK_NAMES["1"]="Eth Sepolia"
-NETWORK_NAMES["2"]="Base Sepolia"
-NETWORK_NAMES["3"]="Base Mainnet"
-
-for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
-    echo "$id) ${NETWORK_NAMES[$id]}"
-done
 
 gpu_info=$(nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader)
 
@@ -132,6 +124,15 @@ while IFS=',' read -r index name memory; do
 done <<< "$gpu_info"
 
 echo "根据GPU显存信息，最小SEGMENT_SIZE为：$MIN_SEGMENT_SIZE"
+
+declare -A NETWORK_NAMES
+NETWORK_NAMES["1"]="Eth Sepolia"
+NETWORK_NAMES["2"]="Base Sepolia"
+NETWORK_NAMES["3"]="Base Mainnet"
+
+for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
+    echo "$id) ${NETWORK_NAMES[$id]}"
+done
 
 read -p "请输入您需要运行的网络（例如 1,2 ，默认 1,2）: " NETWORK_IDS
 NETWORK_IDS=${NETWORK_IDS:-1,2}

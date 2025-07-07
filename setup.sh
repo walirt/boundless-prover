@@ -96,14 +96,6 @@ echo "-----Generating supervisord configuration file-----"
 nvidia-smi -L
 read -p "Please input the GPU ID you need to run according to the printed GPU information (e.g. 0,1 default 0): " GPU_IDS
 GPU_IDS=${GPU_IDS:-0}
-declare -A NETWORK_NAMES
-NETWORK_NAMES["1"]="Eth Sepolia"
-NETWORK_NAMES["2"]="Base Sepolia"
-NETWORK_NAMES["3"]="Base Mainnet"
-
-for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
-    echo "$id) ${NETWORK_NAMES[$id]}"
-done
 
 gpu_info=$(nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader)
 
@@ -132,6 +124,15 @@ while IFS=',' read -r index name memory; do
 done <<< "$gpu_info"
 
 echo "Based on GPU VRAM, the minimum SEGMENT_SIZE is: $MIN_SEGMENT_SIZE"
+
+declare -A NETWORK_NAMES
+NETWORK_NAMES["1"]="Eth Sepolia"
+NETWORK_NAMES["2"]="Base Sepolia"
+NETWORK_NAMES["3"]="Base Mainnet"
+
+for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
+    echo "$id) ${NETWORK_NAMES[$id]}"
+done
 
 read -p "Please input the network you need to run (e.g. 1,2 default 1,2): " NETWORK_IDS
 NETWORK_IDS=${NETWORK_IDS:-1,2}

@@ -294,7 +294,7 @@ redirect_stderr=true
 environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1"
 
 [program:snark_agent]
-command=/app/agent -t snark
+command=/bin/bash -c "ulimit -s 90000000 && /app/agent -t snark"
 directory=/app
 autostart=false
 autorestart=true
@@ -305,7 +305,6 @@ stdout_logfile=/var/log/snark_agent.log
 redirect_stderr=true
 environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1"
 startretries=3
-command=/bin/bash -c "ulimit -s 90000000 && /app/agent -t snark"
 
 [program:rest_api]
 command=/app/rest_api --bind-addr 0.0.0.0:8081 --snark-timeout 180

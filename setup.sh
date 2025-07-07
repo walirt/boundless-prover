@@ -350,7 +350,7 @@ supervisorctl status
 echo
 
 echo "-----Initializing database-----"
-curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3.raw" -L "https://api.github.com/repos/walirt/boundless-prover/contents/initdb.sh" -o initdb.sh
+curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/initdb.sh" -o initdb.sh
 chmod +x initdb.sh
 ./initdb.sh
 mkdir /db

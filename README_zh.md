@@ -8,7 +8,7 @@
 ```bash
 apt update 
 apt install -y curl
-curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/setup.sh" -o setup.sh
+curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/setup_zh.sh" -o setup.sh
 bash setup.sh
 ```
 2. 向市场存入资金

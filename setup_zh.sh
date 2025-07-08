@@ -188,7 +188,7 @@ for NET_ID in "${NET_IDS[@]}"; do
     ENV_FILE="${NETWORK_ENVS_FILE[$NET_ID_TRIM]}"
     BROKER_CONFIGS+="
 [program:broker${NET_ID_TRIM}]
-command=source ${ENV_FILE} && /app/broker --db-url sqlite:///db/broker${NET_ID_TRIM}.db --config-file /app/broker${NET_ID_TRIM}.toml --bento-api-url http://localhost:8081
+command=/bin/bash -c \"source ${ENV_FILE} && /app/broker --db-url sqlite:///db/broker${NET_ID_TRIM}.db --config-file /app/broker${NET_ID_TRIM}.toml --bento-api-url http://localhost:8081\"
 directory=/app
 autostart=false
 autorestart=true

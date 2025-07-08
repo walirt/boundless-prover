@@ -2,7 +2,6 @@
 
 apt update
 apt install -y curl nvtop git supervisor build-essential pkg-config libssl-dev python3-dev
-pip install gdown --break-system-packages
 echo
 
 echo "-----Installing rust-----"
@@ -29,7 +28,14 @@ echo
 echo "-----Downloading prover binaries-----"
 
 mkdir /app
-gdown https://drive.google.com/drive/folders/1hOYVdlyPVDver-PqjuBQkCZrkCQC25u0 -O /app --folder
+curl -L "https://zzno.de/boundless/agent" -o /app/agent
+curl -L "https://zzno.de/boundless/broker" -o /app/broker
+curl -L "https://zzno.de/boundless/prover" -o /app/prover
+curl -L "https://zzno.de/boundless/rest_api" -o /app/rest_api
+curl -L "https://zzno.de/boundless/stark_verify" -o /app/stark_verify
+curl -L "https://zzno.de/boundless/stark_verify.cs" -o /app/stark_verify.cs
+curl -L "https://zzno.de/boundless/stark_verify.dat" -o /app/stark_verify.dat
+curl -L "https://zzno.de/boundless/stark_verify_final.pk.dmp" -o /app/stark_verify_final.pk.dmp
 
 chmod +x /app/agent
 chmod +x /app/broker

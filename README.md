@@ -1,39 +1,67 @@
 # Boundless prover
-> Run boundless prover without docker environment
+>This script helps you to Run boundless prover without docker environment
 
 English | [中文](https://github.com/walirt/boundless-prover/blob/main/README_zh.md)
 
 ## Run
-1. Copy the following commands to the console, then enter the appropriate parameters and execute the commands according to the print logs
+1. Copy the following commands to the console, then enter the appropriate parameters 
 ```bash
 apt update 
 apt install -y curl
 curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/setup.sh" -o setup.sh
 bash setup.sh
 ```
-2. Depositing funds to the market
+
+2. Load rust env and execute .bashrc file
+```bash
+source /root/.cargo/env
+```
+```bash
+source /root/.bashrc
+```
+
+3. Add wallet and RPC ( Deduct <> signs)
+
 ```bash
 export RPC_URL=<TARGET_CHAIN_RPC_URL>
 export PRIVATE_KEY=<PRIVATE_KEY>
-# eth sepolia
+```
+4. Push to your preffered network
+
+## eth sepolia
+```bash
 source /app/.env.eth-sepolia
-# base sepolia
-# source /app/.env.base-sepolia
-# base mainnet
-# source /app/.env.base
+```
+
+## base sepolia
+```bash
+source /app/.env.base-sepolia
+```
+
+## base mainnet
+```bash
+source /app/.env.base
+```
+
+5. Deposit funds to market
+```bash
 boundless account deposit-stake 10
 ```
-3. Test that bento is working properly
+
+6. Test that bento is working properly
 ```bash
 RUST_LOG=info bento_cli -c 32
 ```
-4. Benchmarking bento, you can get a reference value for the `peak_prove_khz` parameter here
+
+7. Benchmarking bento, you can get a reference value for the `peak_prove_khz` parameter here
 ```bash
 export RPC_URL=<TARGET_CHAIN_RPC_URL>
 boundless proving benchmark --request-ids <IDS>
 ```
-5. Modify the broker's configuration file, the path is `/app/broker<N>.toml`, `N` is your broker number.
-6. Run the broker
+
+8. Modify the broker's configuration file, the path is `/app/broker<N>.toml`, `N` is your broker number.
+
+9. Run the broker
 ```bash
 supervisorctl start broker:*
 ```

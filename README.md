@@ -28,17 +28,17 @@ export PRIVATE_KEY=<PRIVATE_KEY>
 ```
 4. Push to your preffered network
 
-## eth sepolia
+- eth sepolia
 ```bash
 source /app/.env.eth-sepolia
 ```
 
-## base sepolia
+- base sepolia
 ```bash
 source /app/.env.base-sepolia
 ```
 
-## base mainnet
+- base mainnet
 ```bash
 source /app/.env.base
 ```
@@ -84,7 +84,7 @@ supervisorctl start broker:*
 ## Note
 1. The script will generate N `gpu_prove_agent` based on the N GPU ID information you enter and N `broker` based on the N network information you enter
 2. This script does not guarantee that your prover will get the task
-3. The current broker uses the default parameters, you need to modify the /app/broker<N>.toml file
+3. The current broker uses the default parameters, you need to modify the `/app/broker<N>.toml` file
 
 ## Reference
 [boundless](https://github.com/boundless-xyz/boundless)  

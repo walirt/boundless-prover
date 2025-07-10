@@ -4,7 +4,7 @@
 English | [中文](https://github.com/walirt/boundless-prover/blob/main/README_zh.md)
 
 ## Run
-1. Copy the following commands to the console, then enter the appropriate parameters 
+1. Copy the following commands to the console, then enter your RPC and Key appropiately
 ```bash
 apt update 
 apt install -y curl
@@ -12,7 +12,12 @@ curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/ma
 bash setup.sh
 ```
 
-2. Load rust env and execute .bashrc file
+2. When prompted for GPU id 
+- 0 for 1 gpu
+- 0,1 for 2 gpus
+
+
+3. Run them just in case
 ```bash
 source /root/.cargo/env
 ```
@@ -20,30 +25,7 @@ source /root/.cargo/env
 source /root/.bashrc
 ```
 
-3. Add wallet and RPC ( Deduct <> signs)
-
-```bash
-export RPC_URL=<TARGET_CHAIN_RPC_URL>
-export PRIVATE_KEY=<PRIVATE_KEY>
-```
-4. Push to your preffered network
-
-- eth sepolia
-```bash
-source /app/.env.eth-sepolia
-```
-
-- base sepolia
-```bash
-source /app/.env.base-sepolia
-```
-
-- base mainnet
-```bash
-source /app/.env.base
-```
-
-5. Deposit funds to market
+4. Deposit funds to market 
 ```bash
 boundless account deposit-stake 10
 ```
@@ -61,10 +43,51 @@ boundless proving benchmark --request-ids <IDS>
 
 8. Modify the broker's configuration file, the path is `/app/broker<N>.toml`, `N` is your broker number.
 
+- For eth-sep
+```bash
+nano /app/broker1.toml
+```
+
+- For base-sep
+```bash
+nano /app/broker2.toml
+```
+
+- Update your prover khz and others if necessary
+
 9. Run the broker
 ```bash
 supervisorctl start broker:*
 ```
+
+
+## Basic Commands
+
+- Checking stake balance
+```bash
+export RPC_URL=<RPC URL>
+export PRIVATE_KEY=<KEY>
+boundless account stake-balance
+```
+
+- Service management
+All of them are independent commands to start , stop or restart a service. Your prover is running through a broker so use broker commands to manage it.
+Dependencies:
+supervisorctl start dependencies:*
+supervisorctl stop dependencies:*
+supervisorctl restart dependencies:*
+Bento:
+supervisorctl start bento:*
+supervisorctl stop bento:*
+supervisorctl restart bento:*
+Broker:
+supervisorctl start broker:*
+supervisorctl stop broker:*
+supervisorctl restart broker:*
+Logs:
+supervisorctl tail -f broker:broker1 [eth sepo]
+supervisorctl tail -f broker:broker2 [base sepo]
+
 
 ## Explanation of nouns
 1. `bento`, is a collective term for all the components used to generate proofs

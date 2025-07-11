@@ -26,7 +26,7 @@ English | [中文](https://github.com/walirt/boundless-prover/blob/main/README_z
     1,2 # Join the Eth Sepolia and Base Sepolia testnet
     3   # Join the Base mainnet
     ```
-then enter the RPC URL and wallet private key for the chosen network
+    then enter the RPC URL and wallet private key for the chosen network
 
 4. Restart the console or run the following command
     ```bash

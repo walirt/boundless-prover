@@ -44,8 +44,8 @@ chmod +x /app/stark_verify
 
 echo "-----Verifying /app files sha256sum-----"
 declare -A FILES_SHA256
-FILES_SHA256["/app/agent"]="b3b7c69f696eeff13c9f5027fafdd65ea98cc0639c9bfdea84699b93f79371b3"
-FILES_SHA256["/app/broker"]="fb4f3408e8ecac3575b1a51a2aa7eb930f67ba870ee16e0892ac9f40f0f2487f"
+FILES_SHA256["/app/agent"]="63ff8efead376f5a515a1371f6abf14ffa7018b9a4226a701ab1758b48281ffd"
+FILES_SHA256["/app/broker"]="a705429568d9abce259f207c6b20968423b221dad0c4fe205d1ace4d599654c0"
 FILES_SHA256["/app/prover"]="d4507413897a37c28699f2f318731ca9ec4784ece69bdf5f1f224bd87ab8f119"
 FILES_SHA256["/app/rest_api"]="180a94d5eca85d7213d6c002e677a6a491d7dcd439ef0543c8435227dd99546d"
 FILES_SHA256["/app/stark_verify"]="7dc5321854d41d9d3ff3da651503fe405082c03c80d68c5f5186b5e77673f58c"
@@ -84,10 +84,10 @@ echo
 echo "-----Installing CLI tools-----"
 git clone https://github.com/boundless-xyz/boundless.git
 cd boundless
-git checkout release-0.12
+git checkout release-0.13
 git submodule update --init --recursive
 cargo install --locked --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli
-cargo install --locked boundless-cli
+cargo install --path crates/boundless-cli --locked boundless-cli
 echo
 
 echo "-----Copying config files-----"

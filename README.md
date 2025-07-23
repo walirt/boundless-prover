@@ -1,6 +1,6 @@
 # Boundless prover
 > This script helps you to Run boundless prover without docker environment  
-> Current version: [v0.12.0](https://github.com/boundless-xyz/boundless/releases/tag/v0.12.0)
+> Current version: [v0.13.0](https://github.com/boundless-xyz/boundless/releases/tag/v0.13.0)
 
 English | [中文](https://github.com/walirt/boundless-prover/blob/main/README_zh.md)
 

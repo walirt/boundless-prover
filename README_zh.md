@@ -1,6 +1,6 @@
 # Boundless prover
 > 此脚本帮助您在无Docker环境中运行boundless prover  
-> 当前版本：[v0.12.0](https://github.com/boundless-xyz/boundless/releases/tag/v0.12.0)
+> 当前版本：[v0.13.0](https://github.com/boundless-xyz/boundless/releases/tag/v0.13.0)
 
 [English](https://github.com/walirt/boundless-prover/blob/main/README.md) | 中文
 

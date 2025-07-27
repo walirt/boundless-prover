@@ -27,7 +27,17 @@ echo
 
 echo "-----正在下载Prover二进制文件-----"
 mkdir /app
-curl -L "https://zzno.de/boundless/agent" -o /app/agent
+
+IS_RTX_50=false
+if nvidia-smi --query-gpu="name" --format=csv,noheader | grep -q "NVIDIA GeForce RTX 50"; then
+    IS_RTX_50=true
+fi
+
+if $IS_RTX_50; then
+    curl -L "https://zzno.de/boundless/agent_50" -o /app/agent
+else
+    curl -L "https://zzno.de/boundless/agent" -o /app/agent
+fi
 curl -L "https://zzno.de/boundless/broker" -o /app/broker
 curl -L "https://zzno.de/boundless/prover" -o /app/prover
 curl -L "https://zzno.de/boundless/rest_api" -o /app/rest_api
@@ -44,7 +54,11 @@ chmod +x /app/stark_verify
 
 echo "-----正在验证/app文件sha256sum-----"
 declare -A FILES_SHA256
-FILES_SHA256["/app/agent"]="63ff8efead376f5a515a1371f6abf14ffa7018b9a4226a701ab1758b48281ffd"
+if $IS_RTX_50; then
+    FILES_SHA256["/app/agent"]="c94699897bd38e49fe85b2931546316756d22be7a261364a32a0f04ebc4e0fce"
+else
+    FILES_SHA256["/app/agent"]="63ff8efead376f5a515a1371f6abf14ffa7018b9a4226a701ab1758b48281ffd"
+fi
 FILES_SHA256["/app/broker"]="a705429568d9abce259f207c6b20968423b221dad0c4fe205d1ace4d599654c0"
 FILES_SHA256["/app/prover"]="d4507413897a37c28699f2f318731ca9ec4784ece69bdf5f1f224bd87ab8f119"
 FILES_SHA256["/app/rest_api"]="180a94d5eca85d7213d6c002e677a6a491d7dcd439ef0543c8435227dd99546d"

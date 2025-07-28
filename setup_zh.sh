@@ -1,5 +1,21 @@
 #!/bin/bash
 
+SILENT_MODE=false
+while getopts "s" opt; do
+    case $opt in
+        s)
+            SILENT_MODE=true
+            echo "正在使用静默模式运行，使用默认值..."
+            ;;
+        \?)
+            echo "无效选项: -$OPTARG" >&2
+            echo "用法: $0 [-s]"
+            echo "  -s: 静默模式（使用默认值，无需输入提示）"
+            exit 1
+            ;;
+    esac
+done
+
 apt update
 apt install -y curl nvtop git supervisor build-essential pkg-config libssl-dev python3-dev
 echo
@@ -113,8 +129,14 @@ echo
 
 echo "-----正在生成supervisord配置文件-----"
 nvidia-smi -L
-read -p "请根据打印的GPU信息输入您需要运行的GPU ID（例如 0,1 ，默认 0）: " GPU_IDS
-GPU_IDS=${GPU_IDS:-0}
+
+if [ "$SILENT_MODE" = true ]; then
+    GPU_IDS="0"
+    echo "使用默认GPU ID: $GPU_IDS"
+else
+    read -p "请根据打印的GPU信息输入您需要运行的GPU ID（例如 0,1 ，默认 0）: " GPU_IDS
+    GPU_IDS=${GPU_IDS:-0}
+fi
 
 gpu_info=$(nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader)
 
@@ -153,22 +175,46 @@ NETWORK_ENVS_FILE["1"]="/app/.env.eth-sepolia"
 NETWORK_ENVS_FILE["2"]="/app/.env.base-sepolia"
 NETWORK_ENVS_FILE["3"]="/app/.env.base"
 
-for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
-    echo "$id) ${NETWORK_NAMES[$id]}"
-done
+if [ "$SILENT_MODE" = false ]; then
+    for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
+        echo "$id) ${NETWORK_NAMES[$id]}"
+    done
+fi
 
-read -p "请输入您需要运行的网络（例如 1,2 ，默认 1,2）: " NETWORK_IDS
-NETWORK_IDS=${NETWORK_IDS:-1,2}
+if [ "$SILENT_MODE" = true ]; then
+    NETWORK_IDS="1,2"
+    echo "使用默认网络: $NETWORK_IDS"
+else
+    read -p "请输入您需要运行的网络（例如 1,2 ，默认 1,2）: " NETWORK_IDS
+    NETWORK_IDS=${NETWORK_IDS:-1,2}
+fi
 
 IFS=',' read -ra NET_IDS <<< "$NETWORK_IDS"
 declare -A NETWORK_RPC
 declare -A NETWORK_PRIVKEY
 
+declare -A DEFAULT_RPC
+DEFAULT_RPC["1"]="https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
+DEFAULT_RPC["2"]="https://base-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
+DEFAULT_RPC["3"]="https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
+
+DEFAULT_PRIVKEY="0x0000000000000000000000000000000000000000000000000000000000000000"
+
 for NET_ID in "${NET_IDS[@]}"; do
     NET_ID_TRIM=$(echo "$NET_ID" | xargs)
     NETWORK_NAME="${NETWORK_NAMES[$NET_ID_TRIM]}"
-    read -p "请输入${NETWORK_NAME}的RPC地址: " rpc
-    read -p "请输入${NETWORK_NAME}的私钥: " privkey
+    
+    if [ "$SILENT_MODE" = true ]; then
+        rpc="${DEFAULT_RPC[$NET_ID_TRIM]}"
+        privkey="$DEFAULT_PRIVKEY"
+        echo "使用${NETWORK_NAME}的默认RPC: $rpc"
+        echo "使用${NETWORK_NAME}的默认私钥: $privkey"
+        echo "警告：请在启动服务前更新配置文件中的RPC URL和私钥！"
+    else
+        read -p "请输入${NETWORK_NAME}的RPC地址: " rpc
+        read -p "请输入${NETWORK_NAME}的私钥: " privkey
+    fi
+    
     NETWORK_RPC["$NET_ID_TRIM"]="$rpc"
     NETWORK_PRIVKEY["$NET_ID_TRIM"]="$privkey"
 done
@@ -394,6 +440,25 @@ echo "Prover主目录: /app"
 echo "日志目录: /var/log"
 echo "Broker配置文件路径: /app/broker*.toml"
 echo "Supervisord配置文件路径: /etc/supervisor/conf.d/boundless.conf"
+
+if [ "$SILENT_MODE" = true ]; then
+    echo
+    echo "=========================================="
+    echo "警告：使用了静默模式！"
+    echo "=========================================="
+    echo "已使用默认值："
+    echo "- GPU ID: 0"
+    echo "- 网络: 1,2 (Eth Sepolia, Base Sepolia)"
+    echo "- RPC URLs: 占位符URL（需要更新）"
+    echo "- 私钥: 占位符私钥（需要更新）"
+    echo
+    echo "重要提醒：启动服务前请更新以下内容："
+    echo "1. 环境变量中的RPC URLs"
+    echo "2. 环境变量中的私钥"
+    echo "3. 检查 /etc/supervisor/conf.d/boundless.conf"
+    echo "=========================================="
+fi
+
 echo
 echo "基本命令: "
 echo "-----运行测试证明-----"

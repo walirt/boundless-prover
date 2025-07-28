@@ -1,5 +1,21 @@
 #!/bin/bash
 
+SILENT_MODE=false
+while getopts "s" opt; do
+    case $opt in
+        s)
+            SILENT_MODE=true
+            echo "Running in silent mode with default values..."
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            echo "Usage: $0 [-s]"
+            echo "  -s: Silent mode (use default values without prompts)"
+            exit 1
+            ;;
+    esac
+done
+
 apt update
 apt install -y curl nvtop git supervisor build-essential pkg-config libssl-dev python3-dev
 echo
@@ -113,8 +129,14 @@ echo
 
 echo "-----Generating supervisord configuration file-----"
 nvidia-smi -L
-read -p "Please input the GPU ID you need to run according to the printed GPU information (e.g. 0,1 default 0): " GPU_IDS
-GPU_IDS=${GPU_IDS:-0}
+
+if [ "$SILENT_MODE" = true ]; then
+    GPU_IDS="0"
+    echo "Using default GPU ID: $GPU_IDS"
+else
+    read -p "Please input the GPU ID you need to run according to the printed GPU information (e.g. 0,1 default 0): " GPU_IDS
+    GPU_IDS=${GPU_IDS:-0}
+fi
 
 gpu_info=$(nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader)
 
@@ -153,22 +175,46 @@ NETWORK_ENVS_FILE["1"]="/app/.env.eth-sepolia"
 NETWORK_ENVS_FILE["2"]="/app/.env.base-sepolia"
 NETWORK_ENVS_FILE["3"]="/app/.env.base"
 
-for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
-    echo "$id) ${NETWORK_NAMES[$id]}"
-done
+if [ "$SILENT_MODE" = false ]; then
+    for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
+        echo "$id) ${NETWORK_NAMES[$id]}"
+    done
+fi
 
-read -p "Please input the network you need to run (e.g. 1,2 default 1,2): " NETWORK_IDS
-NETWORK_IDS=${NETWORK_IDS:-1,2}
+if [ "$SILENT_MODE" = true ]; then
+    NETWORK_IDS="1,2"
+    echo "Using default networks: $NETWORK_IDS"
+else
+    read -p "Please input the network you need to run (e.g. 1,2 default 1,2): " NETWORK_IDS
+    NETWORK_IDS=${NETWORK_IDS:-1,2}
+fi
 
 IFS=',' read -ra NET_IDS <<< "$NETWORK_IDS"
 declare -A NETWORK_RPC
 declare -A NETWORK_PRIVKEY
 
+declare -A DEFAULT_RPC
+DEFAULT_RPC["1"]="https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
+DEFAULT_RPC["2"]="https://base-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
+DEFAULT_RPC["3"]="https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
+
+DEFAULT_PRIVKEY="0x0000000000000000000000000000000000000000000000000000000000000000"
+
 for NET_ID in "${NET_IDS[@]}"; do
     NET_ID_TRIM=$(echo "$NET_ID" | xargs)
     NETWORK_NAME="${NETWORK_NAMES[$NET_ID_TRIM]}"
-    read -p "Please input the RPC address of ${NETWORK_NAME}: " rpc
-    read -p "Please input the private key of ${NETWORK_NAME}: " privkey
+    
+    if [ "$SILENT_MODE" = true ]; then
+        rpc="${DEFAULT_RPC[$NET_ID_TRIM]}"
+        privkey="$DEFAULT_PRIVKEY"
+        echo "Using default RPC for ${NETWORK_NAME}: $rpc"
+        echo "Using default private key for ${NETWORK_NAME}: $privkey"
+        echo "WARNING: Please update RPC URL and private key in the configuration files before starting services!"
+    else
+        read -p "Please input the RPC URL of ${NETWORK_NAME}: " rpc
+        read -p "Please input the private key of ${NETWORK_NAME}: " privkey
+    fi
+    
     NETWORK_RPC["$NET_ID_TRIM"]="$rpc"
     NETWORK_PRIVKEY["$NET_ID_TRIM"]="$privkey"
 done
@@ -394,6 +440,25 @@ echo "Prover main directory: /app"
 echo "Log directory: /var/log"
 echo "Broker configuration file path: /app/broker*.toml"
 echo "Supervisord configuration file path: /etc/supervisor/conf.d/boundless.conf"
+
+if [ "$SILENT_MODE" = true ]; then
+    echo
+    echo "=========================================="
+    echo "WARNING: Silent mode was used!"
+    echo "=========================================="
+    echo "Default values were used for:"
+    echo "- GPU ID: 0"
+    echo "- Networks: 1,2 (Eth Sepolia, Base Sepolia)"
+    echo "- RPC URLs: Placeholder URLs (need to be updated)"
+    echo "- Private Keys: Placeholder key (need to be updated)"
+    echo
+    echo "IMPORTANT: Before starting services, please update:"
+    echo "1. RPC URLs in the environment variables"
+    echo "2. Private keys in the environment variables"
+    echo "3. Review /etc/supervisor/conf.d/boundless.conf"
+    echo "=========================================="
+fi
+
 echo
 echo "Basic commands: "
 echo "-----Running a Test Proof-----"

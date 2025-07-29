@@ -131,11 +131,13 @@ echo "-----Generating supervisord configuration file-----"
 nvidia-smi -L
 
 if [ "$SILENT_MODE" = true ]; then
-    GPU_IDS="0"
-    echo "Using default GPU ID: $GPU_IDS"
+    GPU_IDS=$(nvidia-smi --query-gpu=index --format=csv,noheader | tr '\n' ',' | sed 's/,$//')
+    echo "Using all available GPUs: $GPU_IDS"
 else
-    read -p "Please input the GPU ID you need to run according to the printed GPU information (e.g. 0,1 default 0): " GPU_IDS
-    GPU_IDS=${GPU_IDS:-0}
+    read -p "Please input the GPU ID you need to run according to the printed GPU information (e.g. 0,1 default all): " GPU_IDS
+    if [ -z "$GPU_IDS" ]; then
+        GPU_IDS=$(nvidia-smi --query-gpu=index --format=csv,noheader | tr '\n' ',' | sed 's/,$//')
+    fi
 fi
 
 gpu_info=$(nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader)
@@ -182,11 +184,11 @@ if [ "$SILENT_MODE" = false ]; then
 fi
 
 if [ "$SILENT_MODE" = true ]; then
-    NETWORK_IDS="1,2"
-    echo "Using default networks: $NETWORK_IDS"
+    NETWORK_IDS="3"
+    echo "Using default network: $NETWORK_IDS (Base Mainnet)"
 else
-    read -p "Please input the network you need to run (e.g. 1,2 default 1,2): " NETWORK_IDS
-    NETWORK_IDS=${NETWORK_IDS:-1,2}
+    read -p "Please input the network you need to run (e.g. 1,2,3 default 3): " NETWORK_IDS
+    NETWORK_IDS=${NETWORK_IDS:-3}
 fi
 
 IFS=',' read -ra NET_IDS <<< "$NETWORK_IDS"
@@ -447,8 +449,8 @@ if [ "$SILENT_MODE" = true ]; then
     echo "WARNING: Silent mode was used!"
     echo "=========================================="
     echo "Default values were used for:"
-    echo "- GPU ID: 0"
-    echo "- Networks: 1,2 (Eth Sepolia, Base Sepolia)"
+    echo "- GPU ID: All available GPUs"
+    echo "- Network: 3 (Base Mainnet)"
     echo "- RPC URLs: Placeholder URLs (need to be updated)"
     echo "- Private Keys: Placeholder key (need to be updated)"
     echo

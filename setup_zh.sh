@@ -131,11 +131,13 @@ echo "-----正在生成supervisord配置文件-----"
 nvidia-smi -L
 
 if [ "$SILENT_MODE" = true ]; then
-    GPU_IDS="0"
-    echo "使用默认GPU ID: $GPU_IDS"
+    GPU_IDS=$(nvidia-smi --query-gpu=index --format=csv,noheader | tr '\n' ',' | sed 's/,$//')
+    echo "使用所有可用GPU: $GPU_IDS"
 else
-    read -p "请根据打印的GPU信息输入您需要运行的GPU ID（例如 0,1 ，默认 0）: " GPU_IDS
-    GPU_IDS=${GPU_IDS:-0}
+    read -p "请根据打印的GPU信息输入您需要运行的GPU ID（例如 0,1 ，默认全部）: " GPU_IDS
+    if [ -z "$GPU_IDS" ]; then
+        GPU_IDS=$(nvidia-smi --query-gpu=index --format=csv,noheader | tr '\n' ',' | sed 's/,$//')
+    fi
 fi
 
 gpu_info=$(nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader)
@@ -182,11 +184,11 @@ if [ "$SILENT_MODE" = false ]; then
 fi
 
 if [ "$SILENT_MODE" = true ]; then
-    NETWORK_IDS="1,2"
-    echo "使用默认网络: $NETWORK_IDS"
+    NETWORK_IDS="3"
+    echo "使用默认网络: $NETWORK_IDS (Base Mainnet)"
 else
-    read -p "请输入您需要运行的网络（例如 1,2 ，默认 1,2）: " NETWORK_IDS
-    NETWORK_IDS=${NETWORK_IDS:-1,2}
+    read -p "请输入您需要运行的网络（例如 1,2,3 ，默认 3）: " NETWORK_IDS
+    NETWORK_IDS=${NETWORK_IDS:-3}
 fi
 
 IFS=',' read -ra NET_IDS <<< "$NETWORK_IDS"
@@ -447,8 +449,8 @@ if [ "$SILENT_MODE" = true ]; then
     echo "警告：使用了静默模式！"
     echo "=========================================="
     echo "已使用默认值："
-    echo "- GPU ID: 0"
-    echo "- 网络: 1,2 (Eth Sepolia, Base Sepolia)"
+    echo "- GPU ID: 所有可用GPU"
+    echo "- 网络: 3 (Base Mainnet)"
     echo "- RPC URLs: 占位符URL（需要更新）"
     echo "- 私钥: 占位符私钥（需要更新）"
     echo

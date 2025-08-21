@@ -1,16 +1,22 @@
 #!/bin/bash
 
 SILENT_MODE=false
-while getopts "s" opt; do
+SKIP_CLI_TOOLS=false
+while getopts "sc" opt; do
     case $opt in
         s)
             SILENT_MODE=true
             echo "正在使用静默模式运行，使用默认值..."
             ;;
+        c)
+            SKIP_CLI_TOOLS=true
+            echo "跳过CLI工具安装..."
+            ;;
         \?)
             echo "无效选项: -$OPTARG" >&2
-            echo "用法: $0 [-s]"
+            echo "用法: $0 [-s] [-c]"
             echo "  -s: 静默模式（使用默认值，无需输入提示）"
+            echo "  -c: 跳过CLI工具安装"
             exit 1
             ;;
     esac
@@ -111,14 +117,19 @@ else
 fi
 echo
 
-echo "-----正在安装CLI工具-----"
-git clone https://github.com/boundless-xyz/boundless.git
-cd boundless
-git checkout release-0.13
-git submodule update --init --recursive
-cargo install --locked --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli
-cargo install --path crates/boundless-cli --locked boundless-cli
-echo
+if [ "$SKIP_CLI_TOOLS" = false ]; then
+    echo "-----正在安装CLI工具-----"
+    git clone https://github.com/boundless-xyz/boundless.git
+    cd boundless
+    git checkout release-0.13
+    git submodule update --init --recursive
+    cargo install --locked --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli
+    cargo install --path crates/boundless-cli --locked boundless-cli
+    echo
+else
+    echo "-----跳过CLI工具安装-----"
+    echo
+fi
 
 echo "-----正在复制配置文件-----"
 cp -rf dockerfiles/grafana/* /etc/grafana/provisioning/

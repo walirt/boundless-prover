@@ -1,16 +1,22 @@
 #!/bin/bash
 
 SILENT_MODE=false
-while getopts "s" opt; do
+SKIP_CLI_TOOLS=false
+while getopts "sc" opt; do
     case $opt in
         s)
             SILENT_MODE=true
             echo "Running in silent mode with default values..."
             ;;
+        c)
+            SKIP_CLI_TOOLS=true
+            echo "Skipping CLI tools installation..."
+            ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
-            echo "Usage: $0 [-s]"
+            echo "Usage: $0 [-s] [-c]"
             echo "  -s: Silent mode (use default values without prompts)"
+            echo "  -c: Skip CLI tools installation"
             exit 1
             ;;
     esac
@@ -111,14 +117,19 @@ else
 fi
 echo
 
-echo "-----Installing CLI tools-----"
-git clone https://github.com/boundless-xyz/boundless.git
-cd boundless
-git checkout release-0.13
-git submodule update --init --recursive
-cargo install --locked --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli
-cargo install --path crates/boundless-cli --locked boundless-cli
-echo
+if [ "$SKIP_CLI_TOOLS" = false ]; then
+    echo "-----Installing CLI tools-----"
+    git clone https://github.com/boundless-xyz/boundless.git
+    cd boundless
+    git checkout release-0.13
+    git submodule update --init --recursive
+    cargo install --locked --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli
+    cargo install --path crates/boundless-cli --locked boundless-cli
+    echo
+else
+    echo "-----Skipping CLI tools installation-----"
+    echo
+fi
 
 echo "-----Copying config files-----"
 cp -rf dockerfiles/grafana/* /etc/grafana/provisioning/

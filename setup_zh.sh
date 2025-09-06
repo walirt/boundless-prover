@@ -35,6 +35,7 @@ echo "-----正在安装rzup和RISC Zero工具链-----"
 curl -L https://risczero.com/install | bash
 source $HOME/.bashrc
 /root/.risc0/bin/rzup install
+/root/.risc0/bin/rzup install risc0-groth16
 echo
 
 echo "-----正在安装bento组件-----"
@@ -50,44 +51,25 @@ echo
 echo "-----正在下载Prover二进制文件-----"
 mkdir /app
 
-IS_RTX_50=false
-if nvidia-smi --query-gpu="name" --format=csv,noheader | grep -q "NVIDIA GeForce RTX 50"; then
-    IS_RTX_50=true
-fi
-
-if $IS_RTX_50; then
-    curl -L "https://zzno.de/boundless/agent_50" -o /app/agent
-else
-    curl -L "https://zzno.de/boundless/agent" -o /app/agent
-fi
-curl -L "https://zzno.de/boundless/broker" -o /app/broker
-curl -L "https://zzno.de/boundless/prover" -o /app/prover
-curl -L "https://zzno.de/boundless/rest_api" -o /app/rest_api
-curl -L "https://zzno.de/boundless/stark_verify" -o /app/stark_verify
-curl -L "https://zzno.de/boundless/stark_verify.cs" -o /app/stark_verify.cs
-curl -L "https://zzno.de/boundless/stark_verify.dat" -o /app/stark_verify.dat
-curl -L "https://zzno.de/boundless/stark_verify_final.pk.dmp" -o /app/stark_verify_final.pk.dmp
+curl -L "https://zzno.de/boundless/v0.14.0/broker" -o /app/broker
+curl -L "https://zzno.de/boundless/v0.14.0/broker-stress" -o /app/broker-stress
+curl -L "https://zzno.de/boundless/v0.14.0/bento-agent" -o /app/agent
+curl -L "https://zzno.de/boundless/v0.14.0/bento-rest-api" -o /app/rest_api
+curl -L "https://zzno.de/boundless/v0.14.0/bento-cli" -o /root/.cargo/bin/bento_cli
 
 chmod +x /app/agent
 chmod +x /app/broker
-chmod +x /app/prover
+chmod +x /app/broker-stress
 chmod +x /app/rest_api
-chmod +x /app/stark_verify
+chmod +x /root/.cargo/bin/bento_cli
 
 echo "-----正在验证/app文件sha256sum-----"
 declare -A FILES_SHA256
-if $IS_RTX_50; then
-    FILES_SHA256["/app/agent"]="c94699897bd38e49fe85b2931546316756d22be7a261364a32a0f04ebc4e0fce"
-else
-    FILES_SHA256["/app/agent"]="63ff8efead376f5a515a1371f6abf14ffa7018b9a4226a701ab1758b48281ffd"
-fi
-FILES_SHA256["/app/broker"]="a705429568d9abce259f207c6b20968423b221dad0c4fe205d1ace4d599654c0"
-FILES_SHA256["/app/prover"]="d4507413897a37c28699f2f318731ca9ec4784ece69bdf5f1f224bd87ab8f119"
-FILES_SHA256["/app/rest_api"]="180a94d5eca85d7213d6c002e677a6a491d7dcd439ef0543c8435227dd99546d"
-FILES_SHA256["/app/stark_verify"]="7dc5321854d41d9d3ff3da651503fe405082c03c80d68c5f5186b5e77673f58c"
-FILES_SHA256["/app/stark_verify.cs"]="0670f7c8ce8fe757d0cf4808c5d5cd92c85ac7a96ea98170c2f6f756d49e80b5"
-FILES_SHA256["/app/stark_verify.dat"]="7832c9694eed855a5bdb120e972cce402a133f428513185f97e1bdfdde27a2bc"
-FILES_SHA256["/app/stark_verify_final.pk.dmp"]="6d76b07e187e3329b1d82498a5f826366c3b2e04fc6d99de3d790248eb1ea71f"
+FILES_SHA256["/app/broker"]="a52c12c646d61488b402a296171374b422764db58d4ac7735df212ea2c0e584f"
+FILES_SHA256["/app/broker-stress"]="f7cc20979cc3bd9a54f01854c7ece96eb3bb76e3fef5249824277ecb19ab8f9f"
+FILES_SHA256["/app/agent"]="806792e71f9159146b0f75d705d943bdf41e45ad712bfbc7737b6a7648092b5f"
+FILES_SHA256["/app/rest_api"]="f41f3411451607db3f9622fe00b5729b11de760f73c19a5ebc56e31da7d50243"
+FILES_SHA256["/root/.cargo/bin/bento_cli"]="10c2dbe03469a0eddd45e6f43253a1d1b19f9d0d689c81eee575fc69301b9745"
 
 INTEGRITY_PASS=true
 
@@ -117,21 +99,14 @@ else
 fi
 echo
 
-if [ "$SKIP_CLI_TOOLS" = false ]; then
-    echo "-----正在安装CLI工具-----"
-    git clone https://github.com/boundless-xyz/boundless.git
-    cd boundless
-    git checkout release-0.13
-    git submodule update --init --recursive
-    cargo install --locked --git https://github.com/risc0/risc0 bento-client --branch release-2.1 --bin bento_cli
-    cargo install --path crates/boundless-cli --locked boundless-cli
-    echo
-else
-    echo "-----跳过CLI工具安装-----"
-    echo
-fi
-
 echo "-----正在复制配置文件-----"
+git clone https://github.com/boundless-xyz/boundless.git
+cd boundless
+git checkout v0.14.0
+if [ "$SKIP_CLI_TOOLS" = false ]; then
+    git submodule update --init --recursive
+    cargo install --path crates/boundless-cli --locked boundless-cli
+fi
 cp -rf dockerfiles/grafana/* /etc/grafana/provisioning/
 cp .env.base /app/.env.base
 cp .env.base-sepolia /app/.env.base-sepolia
@@ -239,7 +214,7 @@ for idx in "${!GPU_IDS_ARRAY[@]}"; do
     GPU_ID_TRIM=$(echo "${GPU_IDS_ARRAY[$idx]}" | xargs)
     GPU_AGENT_CONFIGS+="
 [program:gpu_prove_agent${idx}]
-command=/app/agent -t prove
+command=/app/agent -t prove --redis-ttl 57600
 directory=/app
 autostart=false
 autorestart=true
@@ -286,7 +261,7 @@ strip_ansi=true
 programs=redis,postgres,minio,grafana
 
 [group:bento]
-programs=exec_agent0,exec_agent1,aux_agent,snark_agent,rest_api
+programs=exec_agent0,exec_agent1,aux_agent,rest_api
 
 [group:broker]
 programs=
@@ -341,7 +316,7 @@ redirect_stderr=true
 environment=GF_SECURITY_ADMIN_USER="admin",GF_SECURITY_ADMIN_PASSWORD="admin",GF_LOG_LEVEL="WARN",POSTGRES_HOST="localhost",POSTGRES_DB="taskdb",POSTGRES_PORT="5432",POSTGRES_USER="worker",POSTGRES_PASSWORD="password",GF_INSTALL_PLUGINS="frser-sqlite-datasource"
 
 [program:exec_agent0]
-command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
+command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE --redis-ttl 57600
 directory=/app
 autostart=false
 autorestart=true
@@ -353,7 +328,7 @@ redirect_stderr=true
 environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
 
 [program:exec_agent1]
-command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE
+command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE --redis-ttl 57600
 directory=/app
 autostart=false
 autorestart=true
@@ -365,7 +340,7 @@ redirect_stderr=true
 environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
 
 [program:aux_agent]
-command=/app/agent -t aux --monitor-requeue
+command=/app/agent -t aux --monitor-requeue --redis-ttl 57600
 directory=/app
 autostart=false
 autorestart=true
@@ -375,19 +350,6 @@ priority=50
 stdout_logfile=/var/log/aux_agent.log
 redirect_stderr=true
 environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1"
-
-[program:snark_agent]
-command=/bin/bash -c "ulimit -s 90000000 && /app/agent -t snark"
-directory=/app
-autostart=false
-autorestart=true
-startsecs=5
-stopwaitsecs=10
-priority=50
-stdout_logfile=/var/log/snark_agent.log
-redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1"
-startretries=3
 
 [program:rest_api]
 command=/app/rest_api --bind-addr 0.0.0.0:8081 --snark-timeout 180
@@ -432,7 +394,7 @@ supervisorctl status
 echo
 
 echo "-----正在初始化数据库-----"
-curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/tags/v0.13.0/initdb.sh" -o initdb.sh
+curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/initdb.sh" -o initdb.sh
 chmod +x initdb.sh
 ./initdb.sh
 mkdir /db

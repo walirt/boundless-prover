@@ -2,26 +2,26 @@
 > This script helps you to Run boundless prover without docker environment  
 > Current version: [v0.13.0](https://github.com/boundless-xyz/boundless/releases/tag/v0.13.0)
 
-English | [中文](https://github.com/walirt/boundless-prover/blob/main/README_zh.md)
+English | [中文](https://github.com/walirt/boundless-prover/blob/v0.13.0/README_zh.md)
 
 ## Run
 1. Copy the following command to the console and wait for the script to download the dependency and prover binaries, depending on your internet download speed, this usually takes around 25-30 minutes
     ```bash
     apt update 
     apt install -y curl
-    curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/setup.sh" -o setup.sh
+    curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/tags/v0.13.0/setup.sh" -o setup.sh
     bash setup.sh
     ```
 
 2. Select the GPU IDs you want to use, separated by commas, for example
-![](https://github.com/walirt/boundless-prover/blob/main/1.png?raw=true)
+![](https://github.com/walirt/boundless-prover/blob/v0.13.0/1.png?raw=true)
     ```bash
     0   # Use GPU with ID 0
     0,1 # Use GPU with ID 0 and 1
     ```
 
 3. Select the networks you want to join, separated by commas, for example
-![](https://github.com/walirt/boundless-prover/blob/main/2.png?raw=true)
+![](https://github.com/walirt/boundless-prover/blob/v0.13.0/2.png?raw=true)
     ```bash
     1   # Join the Eth Sepolia testnet
     1,2 # Join the Eth Sepolia and Base Sepolia testnet

@@ -432,7 +432,7 @@ supervisorctl status
 echo
 
 echo "-----正在初始化数据库-----"
-curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/initdb.sh" -o initdb.sh
+curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/tags/v0.13.0/initdb.sh" -o initdb.sh
 chmod +x initdb.sh
 ./initdb.sh
 mkdir /db

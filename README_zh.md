@@ -2,26 +2,26 @@
 > 此脚本帮助您在无Docker环境中运行boundless prover  
 > 当前版本：[v0.13.0](https://github.com/boundless-xyz/boundless/releases/tag/v0.13.0)
 
-[English](https://github.com/walirt/boundless-prover/blob/main/README.md) | 中文
+[English](https://github.com/walirt/boundless-prover/blob/v0.13.0/README.md) | 中文
 
 ## 运行
 1. 复制以下命令到控制台，等待脚本下载依赖和prover二进制文件，根据您的网络下载速度，通常需要25-30分钟
     ```bash
     apt update 
     apt install -y curl
-    curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/heads/main/setup_zh.sh" -o setup.sh
+    curl -L "https://raw.githubusercontent.com/walirt/boundless-prover/refs/tags/v0.13.0/setup_zh.sh" -o setup.sh
     bash setup.sh
     ```
 
 2. 选择您要使用的GPU ID，用英文逗号分隔，例如
-![](https://github.com/walirt/boundless-prover/blob/main/1.png?raw=true)
+![](https://github.com/walirt/boundless-prover/blob/v0.13.0/1.png?raw=true)
     ```bash
     0   # 使用ID为0的GPU
     0,1 # 使用ID为0和1的GPU
     ```
 
 3. 选择您要加入的网络，用英文逗号分隔，例如
-![](https://github.com/walirt/boundless-prover/blob/main/2.png?raw=true)
+![](https://github.com/walirt/boundless-prover/blob/v0.13.0/2.png?raw=true)
     ```bash
     1   # 加入Eth Sepolia测试网
     1,2 # 加入Eth Sepolia和Base Sepolia测试网

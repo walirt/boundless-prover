@@ -53,7 +53,7 @@ mkdir /app
 
 curl -L "https://zzno.de/boundless/v0.14.0/broker" -o /app/broker
 curl -L "https://zzno.de/boundless/v0.14.0/broker-stress" -o /app/broker-stress
-curl -L "https://zzno.de/boundless/v0.14.0/bento-agent" -o /app/agent
+curl -L "https://zzno.de/boundless/v0.14.0/bento-agent-cuda12_8" -o /app/agent
 curl -L "https://zzno.de/boundless/v0.14.0/bento-rest-api" -o /app/rest_api
 curl -L "https://zzno.de/boundless/v0.14.0/bento-cli" -o /root/.cargo/bin/bento_cli
 
@@ -67,7 +67,7 @@ echo "-----正在验证/app文件sha256sum-----"
 declare -A FILES_SHA256
 FILES_SHA256["/app/broker"]="a52c12c646d61488b402a296171374b422764db58d4ac7735df212ea2c0e584f"
 FILES_SHA256["/app/broker-stress"]="f7cc20979cc3bd9a54f01854c7ece96eb3bb76e3fef5249824277ecb19ab8f9f"
-FILES_SHA256["/app/agent"]="806792e71f9159146b0f75d705d943bdf41e45ad712bfbc7737b6a7648092b5f"
+FILES_SHA256["/app/agent"]="343f540cfebfcebad2ec66ce3e1bcefe6de5cfb0b4d05219dd531bc87d346a70"
 FILES_SHA256["/app/rest_api"]="f41f3411451607db3f9622fe00b5729b11de760f73c19a5ebc56e31da7d50243"
 FILES_SHA256["/root/.cargo/bin/bento_cli"]="10c2dbe03469a0eddd45e6f43253a1d1b19f9d0d689c81eee575fc69301b9745"
 

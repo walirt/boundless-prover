@@ -67,7 +67,7 @@ echo "-----Verifying /app files sha256sum-----"
 declare -A FILES_SHA256
 FILES_SHA256["/app/broker"]="a52c12c646d61488b402a296171374b422764db58d4ac7735df212ea2c0e584f"
 FILES_SHA256["/app/broker-stress"]="f7cc20979cc3bd9a54f01854c7ece96eb3bb76e3fef5249824277ecb19ab8f9f"
-FILES_SHA256["/app/agent"]="343f540cfebfcebad2ec66ce3e1bcefe6de5cfb0b4d05219dd531bc87d346a70"
+FILES_SHA256["/app/agent"]="7056618c3c51784dba3a37f566f6881bf44ebde7904a8858c03a789632445df4"
 FILES_SHA256["/app/rest_api"]="f41f3411451607db3f9622fe00b5729b11de760f73c19a5ebc56e31da7d50243"
 FILES_SHA256["/root/.cargo/bin/bento_cli"]="10c2dbe03469a0eddd45e6f43253a1d1b19f9d0d689c81eee575fc69301b9745"
 

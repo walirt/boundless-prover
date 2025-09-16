@@ -51,11 +51,11 @@ echo
 echo "-----正在下载Prover二进制文件-----"
 mkdir /app
 
-curl -L "https://zzno.de/boundless/v0.14.0/broker" -o /app/broker
-curl -L "https://zzno.de/boundless/v0.14.0/broker-stress" -o /app/broker-stress
-curl -L "https://zzno.de/boundless/v0.14.0/bento-agent-cuda12_8" -o /app/agent
-curl -L "https://zzno.de/boundless/v0.14.0/bento-rest-api" -o /app/rest_api
-curl -L "https://zzno.de/boundless/v0.14.0/bento-cli" -o /root/.cargo/bin/bento_cli
+curl -L "https://zzno.de/boundless/v1.0.0/broker" -o /app/broker
+curl -L "https://zzno.de/boundless/v1.0.0/broker-stress" -o /app/broker-stress
+curl -L "https://zzno.de/boundless/v1.0.0/bento-agent-cuda12_8" -o /app/agent
+curl -L "https://zzno.de/boundless/v1.0.0/bento-rest-api" -o /app/rest_api
+curl -L "https://zzno.de/boundless/v1.0.0/bento-cli" -o /root/.cargo/bin/bento_cli
 
 chmod +x /app/agent
 chmod +x /app/broker
@@ -65,11 +65,11 @@ chmod +x /root/.cargo/bin/bento_cli
 
 echo "-----正在验证/app文件sha256sum-----"
 declare -A FILES_SHA256
-FILES_SHA256["/app/broker"]="a52c12c646d61488b402a296171374b422764db58d4ac7735df212ea2c0e584f"
-FILES_SHA256["/app/broker-stress"]="f7cc20979cc3bd9a54f01854c7ece96eb3bb76e3fef5249824277ecb19ab8f9f"
-FILES_SHA256["/app/agent"]="7056618c3c51784dba3a37f566f6881bf44ebde7904a8858c03a789632445df4"
-FILES_SHA256["/app/rest_api"]="f41f3411451607db3f9622fe00b5729b11de760f73c19a5ebc56e31da7d50243"
-FILES_SHA256["/root/.cargo/bin/bento_cli"]="10c2dbe03469a0eddd45e6f43253a1d1b19f9d0d689c81eee575fc69301b9745"
+FILES_SHA256["/app/broker"]="216a792c4bb1444a0ce7a447ea2cad0b24e660601baa49057f77b37ac9f4ad74"
+FILES_SHA256["/app/broker-stress"]="024d916463d8f24fb9d12857b6f1dbdc016f972e8d8b82434804e077e0fe6231"
+FILES_SHA256["/app/agent"]="ca8bf4a59cbd8332a075f0426eea27064b37124a4296664fb26f0b07dfff317a"
+FILES_SHA256["/app/rest_api"]="02a0c87b3bfc1fd738d6714ee24fb32fbcb7887bfe46321c3eed2061c581a87a"
+FILES_SHA256["/root/.cargo/bin/bento_cli"]="7af2fe49f75acf95e06476e55e6a91343c238b0cf5696d1cae80be54fcc17b45"
 
 INTEGRITY_PASS=true
 
@@ -102,7 +102,7 @@ echo
 echo "-----正在复制配置文件-----"
 git clone https://github.com/boundless-xyz/boundless.git
 cd boundless
-git checkout v0.14.0
+git checkout v1.0.0
 if [ "$SKIP_CLI_TOOLS" = false ]; then
     git submodule update --init --recursive
     cargo install --path crates/boundless-cli --locked boundless-cli

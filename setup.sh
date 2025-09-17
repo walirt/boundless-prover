@@ -207,6 +207,9 @@ for NET_ID in "${NET_IDS[@]}"; do
     NETWORK_PRIVKEY["$NET_ID_TRIM"]="$privkey"
 done
 
+POVW_LOG_ID=""
+read -p "Please input the POVW Log ID: " POVW_LOG_ID
+
 GPU_IDS_ARRAY=()
 IFS=',' read -ra GPU_IDS_ARRAY <<< "$GPU_IDS"
 GPU_AGENT_CONFIGS=""
@@ -223,7 +226,7 @@ stopwaitsecs=10
 priority=50
 stdout_logfile=/var/log/gpu_prove_agent${idx}.log
 redirect_stderr=true
-environment=DATABASE_URL=\"postgresql://worker:password@localhost:5432/taskdb\",REDIS_URL=\"redis://localhost:6379\",S3_URL=\"http://localhost:9000\",S3_BUCKET=\"workflow\",S3_ACCESS_KEY=\"admin\",S3_SECRET_KEY=\"password\",RUST_LOG=\"info\",RUST_BACKTRACE=\"1\",CUDA_VISIBLE_DEVICES=\"${GPU_ID_TRIM}\"
+environment=DATABASE_URL=\"postgresql://worker:password@localhost:5432/taskdb\",REDIS_URL=\"redis://localhost:6379\",S3_URL=\"http://localhost:9000\",S3_BUCKET=\"workflow\",S3_ACCESS_KEY=\"admin\",S3_SECRET_KEY=\"password\",RUST_LOG=\"info\",RUST_BACKTRACE=\"1\",CUDA_VISIBLE_DEVICES=\"${GPU_ID_TRIM}\",POVW_LOG_ID=\"${POVW_LOG_ID}\"
 "
 done
 
@@ -325,7 +328,7 @@ stopwaitsecs=10
 priority=50
 stdout_logfile=/var/log/exec_agent0.log
 redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17",POVW_LOG_ID="${POVW_LOG_ID}"
 
 [program:exec_agent1]
 command=/app/agent -t exec --segment-po2 $MIN_SEGMENT_SIZE --redis-ttl 57600
@@ -337,7 +340,7 @@ stopwaitsecs=10
 priority=50
 stdout_logfile=/var/log/exec_agent1.log
 redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17"
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",RISC0_KECCAK_PO2="17",POVW_LOG_ID="${POVW_LOG_ID}"
 
 [program:aux_agent]
 command=/app/agent -t aux --monitor-requeue --redis-ttl 57600
@@ -349,7 +352,7 @@ stopwaitsecs=10
 priority=50
 stdout_logfile=/var/log/aux_agent.log
 redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1"
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",POVW_LOG_ID="${POVW_LOG_ID}"
 
 [program:rest_api]
 command=/app/rest_api --bind-addr 0.0.0.0:8081 --snark-timeout 180
@@ -361,7 +364,7 @@ stopwaitsecs=10
 priority=50
 stdout_logfile=/var/log/rest_api.log
 redirect_stderr=true
-environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1"
+environment=DATABASE_URL="postgresql://worker:password@localhost:5432/taskdb",REDIS_URL="redis://localhost:6379",S3_URL="http://localhost:9000",S3_BUCKET="workflow",S3_ACCESS_KEY="admin",S3_SECRET_KEY="password",RUST_LOG="info",RUST_BACKTRACE="1",POVW_LOG_ID="${POVW_LOG_ID}"
 EOF
 
 cat <<EOF >>/etc/supervisor/conf.d/boundless.conf

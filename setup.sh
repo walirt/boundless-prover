@@ -108,9 +108,6 @@ if [ "$SKIP_CLI_TOOLS" = false ]; then
     cargo install --path crates/boundless-cli --locked boundless-cli
 fi
 cp -rf dockerfiles/grafana/* /etc/grafana/provisioning/
-cp .env.base /app/.env.base
-cp .env.base-sepolia /app/.env.base-sepolia
-cp .env.eth-sepolia /app/.env.eth-sepolia
 echo
 
 echo "-----Generating supervisord configuration file-----"
@@ -158,10 +155,6 @@ declare -A NETWORK_NAMES
 NETWORK_NAMES["1"]="Eth Sepolia"
 NETWORK_NAMES["2"]="Base Sepolia"
 NETWORK_NAMES["3"]="Base Mainnet"
-declare -A NETWORK_ENVS_FILE
-NETWORK_ENVS_FILE["1"]="/app/.env.eth-sepolia"
-NETWORK_ENVS_FILE["2"]="/app/.env.base-sepolia"
-NETWORK_ENVS_FILE["3"]="/app/.env.base"
 
 if [ "$SILENT_MODE" = false ]; then
     for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
@@ -235,10 +228,9 @@ for NET_ID in "${NET_IDS[@]}"; do
     NET_ID_TRIM=$(echo "$NET_ID" | xargs)
     RPC_URL="${NETWORK_RPC[$NET_ID_TRIM]}"
     PRIVKEY="${NETWORK_PRIVKEY[$NET_ID_TRIM]}"
-    ENV_FILE="${NETWORK_ENVS_FILE[$NET_ID_TRIM]}"
     BROKER_CONFIGS+="
 [program:broker${NET_ID_TRIM}]
-command=/bin/bash -c \"source ${ENV_FILE} && /app/broker --db-url sqlite:///db/broker${NET_ID_TRIM}.db --config-file /app/broker${NET_ID_TRIM}.toml --bento-api-url http://localhost:8081\"
+command=/app/broker --db-url sqlite:///db/broker${NET_ID_TRIM}.db --config-file /app/broker${NET_ID_TRIM}.toml --bento-api-url http://localhost:8081
 directory=/app
 autostart=false
 autorestart=true

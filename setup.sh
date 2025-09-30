@@ -151,54 +151,22 @@ done <<< "$gpu_info"
 
 echo "Based on GPU VRAM, the minimum SEGMENT_SIZE is: $MIN_SEGMENT_SIZE"
 
-declare -A NETWORK_NAMES
-NETWORK_NAMES["1"]="Eth Sepolia"
-NETWORK_NAMES["2"]="Base Sepolia"
-NETWORK_NAMES["3"]="Base Mainnet"
+# Fixed to Base Mainnet only
+NET_ID="3"
+NETWORK_NAME="Base Mainnet"
 
-if [ "$SILENT_MODE" = false ]; then
-    for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
-        echo "$id) ${NETWORK_NAMES[$id]}"
-    done
-fi
+echo "Configuration for Base Mainnet:"
 
 if [ "$SILENT_MODE" = true ]; then
-    NETWORK_IDS="3"
-    echo "Using default network: $NETWORK_IDS (Base Mainnet)"
+    BASE_RPC="https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
+    BASE_PRIVKEY="0x0000000000000000000000000000000000000000000000000000000000000000"
+    echo "Using default RPC for Base Mainnet: $BASE_RPC"
+    echo "Using default private key for Base Mainnet: $BASE_PRIVKEY"
+    echo "WARNING: Please update RPC URL and private key in the configuration files before starting services!"
 else
-    read -p "Please input the network you need to run (e.g. 1,2,3 default 3): " NETWORK_IDS
-    NETWORK_IDS=${NETWORK_IDS:-3}
+    read -p "Please input the Base Mainnet RPC URL: " BASE_RPC
+    read -p "Please input the Base Mainnet private key: " BASE_PRIVKEY
 fi
-
-IFS=',' read -ra NET_IDS <<< "$NETWORK_IDS"
-declare -A NETWORK_RPC
-declare -A NETWORK_PRIVKEY
-
-declare -A DEFAULT_RPC
-DEFAULT_RPC["1"]="https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
-DEFAULT_RPC["2"]="https://base-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
-DEFAULT_RPC["3"]="https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
-
-DEFAULT_PRIVKEY="0x0000000000000000000000000000000000000000000000000000000000000000"
-
-for NET_ID in "${NET_IDS[@]}"; do
-    NET_ID_TRIM=$(echo "$NET_ID" | xargs)
-    NETWORK_NAME="${NETWORK_NAMES[$NET_ID_TRIM]}"
-    
-    if [ "$SILENT_MODE" = true ]; then
-        rpc="${DEFAULT_RPC[$NET_ID_TRIM]}"
-        privkey="$DEFAULT_PRIVKEY"
-        echo "Using default RPC for ${NETWORK_NAME}: $rpc"
-        echo "Using default private key for ${NETWORK_NAME}: $privkey"
-        echo "WARNING: Please update RPC URL and private key in the configuration files before starting services!"
-    else
-        read -p "Please input the RPC URL of ${NETWORK_NAME}: " rpc
-        read -p "Please input the private key of ${NETWORK_NAME}: " privkey
-    fi
-    
-    NETWORK_RPC["$NET_ID_TRIM"]="$rpc"
-    NETWORK_PRIVKEY["$NET_ID_TRIM"]="$privkey"
-done
 
 POVW_LOG_ID=""
 read -p "Please input the POVW Log ID: " POVW_LOG_ID
@@ -223,26 +191,21 @@ environment=DATABASE_URL=\"postgresql://worker:password@localhost:5432/taskdb\",
 "
 done
 
-BROKER_CONFIGS=""
-for NET_ID in "${NET_IDS[@]}"; do
-    NET_ID_TRIM=$(echo "$NET_ID" | xargs)
-    RPC_URL="${NETWORK_RPC[$NET_ID_TRIM]}"
-    PRIVKEY="${NETWORK_PRIVKEY[$NET_ID_TRIM]}"
-    BROKER_CONFIGS+="
-[program:broker${NET_ID_TRIM}]
-command=/app/broker --db-url sqlite:///db/broker${NET_ID_TRIM}.db --config-file /app/broker${NET_ID_TRIM}.toml --bento-api-url http://localhost:8081
+# Base Mainnet broker configuration
+BROKER_CONFIGS="
+[program:broker3]
+command=/app/broker --db-url sqlite:///db/broker3.db --config-file /app/broker3.toml --bento-api-url http://localhost:8081
 directory=/app
 autostart=false
 autorestart=true
 startsecs=5
 stopwaitsecs=10800
 priority=60
-stdout_logfile=/var/log/broker${NET_ID_TRIM}.log
+stdout_logfile=/var/log/broker3.log
 redirect_stderr=true
-environment=RUST_LOG=\"info,broker=debug,boundless_market=debug\",PRIVATE_KEY=\"${PRIVKEY}\",RPC_URL=\"${RPC_URL}\",POSTGRES_HOST=\"localhost\",POSTGRES_DB=\"taskdb\",POSTGRES_PORT=\"5432\",POSTGRES_USER=\"worker\",POSTGRES_PASS=\"password\"
+environment=RUST_LOG=\"info,broker=debug,boundless_market=debug\",PRIVATE_KEY=\"${BASE_PRIVKEY}\",RPC_URL=\"${BASE_RPC}\",POSTGRES_HOST=\"localhost\",POSTGRES_DB=\"taskdb\",POSTGRES_PORT=\"5432\",POSTGRES_USER=\"worker\",POSTGRES_PASS=\"password\"
 "
-    cp broker-template.toml /app/broker${NET_ID_TRIM}.toml
-done
+cp broker-template.toml /app/broker3.toml
 
 cat <<EOF >/etc/supervisor/conf.d/boundless.conf
 [supervisord]
@@ -418,13 +381,13 @@ if [ "$SILENT_MODE" = true ]; then
     echo "=========================================="
     echo "Default values were used for:"
     echo "- GPU ID: All available GPUs"
-    echo "- Network: 3 (Base Mainnet)"
-    echo "- RPC URLs: Placeholder URLs (need to be updated)"
-    echo "- Private Keys: Placeholder key (need to be updated)"
+    echo "- Network: Base Mainnet"
+    echo "- RPC URL: Placeholder URL (need to be updated)"
+    echo "- Private Key: Placeholder key (need to be updated)"
     echo
     echo "IMPORTANT: Before starting services, please update:"
-    echo "1. RPC URLs in the environment variables"
-    echo "2. Private keys in the environment variables"
+    echo "1. Base Mainnet RPC URL in the environment variables"
+    echo "2. Base Mainnet private key in the environment variables"
     echo "3. Review /etc/supervisor/conf.d/boundless.conf"
     echo "=========================================="
 fi
@@ -442,9 +405,9 @@ echo "-----Deposit and Stake-----"
 echo "export RPC_URL=<TARGET_CHAIN_RPC_URL>"
 echo "export PRIVATE_KEY=<PRIVATE_KEY>"
 echo "source /app/.env.<TARGET_CHAIN_NAME>"
-echo "boundless account deposit-stake <USDC_TO_DEPOSIT>"
-echo "boundless account stake-balance"
-echo "boundless account withdraw-stake <AMOUNT_TO_WITHDRAW>"
+echo "boundless account deposit-collateral <USDC_TO_DEPOSIT>"
+echo "boundless account collateral-balance"
+echo "boundless account withdraw-collateral <AMOUNT_TO_WITHDRAW>"
 echo
 echo "-----Service management-----"
 echo "Dependencies:"

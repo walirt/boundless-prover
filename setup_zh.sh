@@ -151,54 +151,22 @@ done <<< "$gpu_info"
 
 echo "根据GPU显存信息，最小SEGMENT_SIZE为：$MIN_SEGMENT_SIZE"
 
-declare -A NETWORK_NAMES
-NETWORK_NAMES["1"]="Eth Sepolia"
-NETWORK_NAMES["2"]="Base Sepolia"
-NETWORK_NAMES["3"]="Base Mainnet"
+# 固定为 Base Mainnet
+NET_ID="3"
+NETWORK_NAME="Base Mainnet"
 
-if [ "$SILENT_MODE" = false ]; then
-    for id in $(for key in "${!NETWORK_NAMES[@]}"; do echo "$key"; done | sort -n); do
-        echo "$id) ${NETWORK_NAMES[$id]}"
-    done
-fi
+echo "Base Mainnet 配置："
 
 if [ "$SILENT_MODE" = true ]; then
-    NETWORK_IDS="3"
-    echo "使用默认网络: $NETWORK_IDS (Base Mainnet)"
+    BASE_RPC="https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
+    BASE_PRIVKEY="0x0000000000000000000000000000000000000000000000000000000000000000"
+    echo "使用 Base Mainnet 的默认RPC: $BASE_RPC"
+    echo "使用 Base Mainnet 的默认私钥: $BASE_PRIVKEY"
+    echo "警告：请在启动服务前更新配置文件中的RPC URL和私钥！"
 else
-    read -p "请输入您需要运行的网络（例如 1,2,3 ，默认 3）: " NETWORK_IDS
-    NETWORK_IDS=${NETWORK_IDS:-3}
+    read -p "请输入 Base Mainnet RPC 地址: " BASE_RPC
+    read -p "请输入 Base Mainnet 私钥: " BASE_PRIVKEY
 fi
-
-IFS=',' read -ra NET_IDS <<< "$NETWORK_IDS"
-declare -A NETWORK_RPC
-declare -A NETWORK_PRIVKEY
-
-declare -A DEFAULT_RPC
-DEFAULT_RPC["1"]="https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
-DEFAULT_RPC["2"]="https://base-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
-DEFAULT_RPC["3"]="https://base-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
-
-DEFAULT_PRIVKEY="0x0000000000000000000000000000000000000000000000000000000000000000"
-
-for NET_ID in "${NET_IDS[@]}"; do
-    NET_ID_TRIM=$(echo "$NET_ID" | xargs)
-    NETWORK_NAME="${NETWORK_NAMES[$NET_ID_TRIM]}"
-    
-    if [ "$SILENT_MODE" = true ]; then
-        rpc="${DEFAULT_RPC[$NET_ID_TRIM]}"
-        privkey="$DEFAULT_PRIVKEY"
-        echo "使用${NETWORK_NAME}的默认RPC: $rpc"
-        echo "使用${NETWORK_NAME}的默认私钥: $privkey"
-        echo "警告：请在启动服务前更新配置文件中的RPC URL和私钥！"
-    else
-        read -p "请输入${NETWORK_NAME}的RPC地址: " rpc
-        read -p "请输入${NETWORK_NAME}的私钥: " privkey
-    fi
-    
-    NETWORK_RPC["$NET_ID_TRIM"]="$rpc"
-    NETWORK_PRIVKEY["$NET_ID_TRIM"]="$privkey"
-done
 
 POVW_LOG_ID=""
 read -p "请输入POVW Log ID: " POVW_LOG_ID
@@ -223,26 +191,21 @@ environment=DATABASE_URL=\"postgresql://worker:password@localhost:5432/taskdb\",
 "
 done
 
-BROKER_CONFIGS=""
-for NET_ID in "${NET_IDS[@]}"; do
-    NET_ID_TRIM=$(echo "$NET_ID" | xargs)
-    RPC_URL="${NETWORK_RPC[$NET_ID_TRIM]}"
-    PRIVKEY="${NETWORK_PRIVKEY[$NET_ID_TRIM]}"
-    BROKER_CONFIGS+="
-[program:broker${NET_ID_TRIM}]
-command=/app/broker --db-url sqlite:///db/broker${NET_ID_TRIM}.db --config-file /app/broker${NET_ID_TRIM}.toml --bento-api-url http://localhost:8081
+# Base Mainnet broker 配置
+BROKER_CONFIGS="
+[program:broker3]
+command=/app/broker --db-url sqlite:///db/broker3.db --config-file /app/broker3.toml --bento-api-url http://localhost:8081
 directory=/app
 autostart=false
 autorestart=true
 startsecs=5
 stopwaitsecs=10800
 priority=60
-stdout_logfile=/var/log/broker${NET_ID_TRIM}.log
+stdout_logfile=/var/log/broker3.log
 redirect_stderr=true
-environment=RUST_LOG=\"info,broker=debug,boundless_market=debug\",PRIVATE_KEY=\"${PRIVKEY}\",RPC_URL=\"${RPC_URL}\",POSTGRES_HOST=\"localhost\",POSTGRES_DB=\"taskdb\",POSTGRES_PORT=\"5432\",POSTGRES_USER=\"worker\",POSTGRES_PASS=\"password\"
+environment=RUST_LOG=\"info,broker=debug,boundless_market=debug\",PRIVATE_KEY=\"${BASE_PRIVKEY}\",RPC_URL=\"${BASE_RPC}\",POSTGRES_HOST=\"localhost\",POSTGRES_DB=\"taskdb\",POSTGRES_PORT=\"5432\",POSTGRES_USER=\"worker\",POSTGRES_PASS=\"password\"
 "
-    cp broker-template.toml /app/broker${NET_ID_TRIM}.toml
-done
+cp broker-template.toml /app/broker3.toml
 
 cat <<EOF >/etc/supervisor/conf.d/boundless.conf
 [supervisord]
@@ -418,13 +381,13 @@ if [ "$SILENT_MODE" = true ]; then
     echo "=========================================="
     echo "已使用默认值："
     echo "- GPU ID: 所有可用GPU"
-    echo "- 网络: 3 (Base Mainnet)"
-    echo "- RPC URLs: 占位符URL（需要更新）"
+    echo "- 网络: Base Mainnet"
+    echo "- RPC URL: 占位符URL（需要更新）"
     echo "- 私钥: 占位符私钥（需要更新）"
     echo
     echo "重要提醒：启动服务前请更新以下内容："
-    echo "1. 环境变量中的RPC URLs"
-    echo "2. 环境变量中的私钥"
+    echo "1. 环境变量中的 Base Mainnet RPC URL"
+    echo "2. 环境变量中的 Base Mainnet 私钥"
     echo "3. 检查 /etc/supervisor/conf.d/boundless.conf"
     echo "=========================================="
 fi
@@ -438,13 +401,13 @@ echo "-----Prover基准测试-----"
 echo "export RPC_URL=<目标链RPC_URL>"
 echo "boundless proving benchmark --request-ids <IDS>"
 echo 
-echo "-----存款和质押-----"
+echo "-----存款和抵押-----"
 echo "export RPC_URL=<目标链RPC_URL>"
 echo "export PRIVATE_KEY=<私钥>"
 echo "source /app/.env.<目标链名称>"
-echo "boundless account deposit-stake <要存入的USDC>"
-echo "boundless account stake-balance"
-echo "boundless account withdraw-stake <要提取的金额>"
+echo "boundless account deposit-collateral <要存入的USDC>"
+echo "boundless account collateral-balance"
+echo "boundless account withdraw-collateral <要提取的金额>"
 echo
 echo "-----服务管理-----"
 echo "依赖服务:"
